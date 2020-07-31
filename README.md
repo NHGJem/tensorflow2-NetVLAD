@@ -30,7 +30,7 @@ The negative image used for any query and positive image was a positive image of
 ## Deep Learning Architecture
 The NetVLAD layer, originally designed usign MatLab, was modified to be a custom keras layer compatible with Tensorflow 2. The layer is then joined to the VGG16 model with its Fully-Connected layers removed, and weights pre-trained on ImageNet.
 
-*insert image here*
+![Image of Model](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/model.png)
 
 ## Metrics
 Mean Average Precision (mAP) over all querys were used, where images labelled "ok" and "good" were treated as positives and images labelled "junk" were entirely removed from the calculation.
@@ -55,7 +55,7 @@ Object | Value
  Length of each decay period | 10 epochs 
  Subsequent initial learning rates | 0.8x of previous period's initial 
  
- *insert LR chart here*
+ ![Chart of LR for each epoch](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/lr_chart.png)
 
 ## Data Augmentations
 Standard augmentations were used. These include: 
