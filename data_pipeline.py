@@ -72,7 +72,7 @@ def triplet_generator(path2txt, querytxt, train, mean, std, filetype='jpg'):
     list_of_positives = list_of_good+list_of_ok
 
     ### Get a small handful of images from only the first 80%. Comment out the split and if-else if training on all images.
-    split = int(tf.math.ceil(len(list_of_positives)*0.8))   # if the dataset has good and ok (like oxford), it will prioritize good as training. implement seeded shuffling?
+    split = int(tf.math.ceil(len(list_of_positives)*0.8))
     if train:
         list_of_positives = list_of_positives[:split]
     else:
@@ -116,8 +116,7 @@ def dataset_maker(path2txt, querytxt, train, mean, std):
     for i in itertools.count():
         yield triplet_generator(path2txt, querytxt, train, mean, std)
 
-
-def decode_augment(path, mean, std, img_size = 224):
+'''def decode_augment_old(path, mean, std, img_size = 224):
     
     max_dim = tf.convert_to_tensor([img_size,img_size], dtype=tf.int32)
     
@@ -162,6 +161,63 @@ def decode_augment(path, mean, std, img_size = 224):
         dx = rng.uniform(-roll,roll)
         dy = rng.uniform(-roll,roll)
         img = tfa.image.translate(img, [dx,dy])
+
+    return img'''
+
+def decode_augment(path, mean, std, img_size = 224):
+    
+    max_dim = tf.convert_to_tensor([img_size,img_size], dtype=tf.int32)
+    
+    img = tf.io.read_file(path)
+    img = tf.image.decode_jpeg(img, channels=3)
+    img = tf.image.convert_image_dtype(img, tf.float32)
+
+    img = tf.image.resize(img, max_dim)
+    
+    ## Photometric Augmentations - Apply brightness, or contrast, or saturation, or none
+    
+    roll = rng.uniform()
+    
+    if roll < 0.25:
+        img = tf.image.random_brightness(img, 0.2)
+    elif roll < 0.50:
+        img = tf.image.random_contrast(img, 1, 2)
+    elif roll < 0.75:
+        img = tf.image.random_saturation(img, 1, 3)
+    else:
+        pass
+    
+    ## Apply dataset normalization
+    
+    img = tf.math.subtract(img,mean)
+    img = tf.math.divide(img,std)
+    
+    ## Geometric Augmentations - Apply translate, or central crop, or random crop, or rotate, or horizontal flip, or none
+    
+    roll = rng.uniform()
+    fraction = rng.uniform(low=0.7)
+    
+    if roll < 0.2:
+        delta = round(roll/4*img_size)
+        dx = rng.uniform(-delta,delta)
+        dy = rng.uniform(-delta,delta)
+        img = tfa.image.translate(img, [dx,dy])
+    elif roll < 0.3:
+        img = tf.image.central_crop(img,fraction)    
+    elif roll < 0.4:
+        crop_dim = tf.math.multiply(tf.cast(max_dim, tf.float32),fraction)
+        crop_dim = tf.cast(tf.math.round(crop_dim), tf.int32)
+        crop_dim = tf.concat([crop_dim, [3]], 0)
+        img = tf.image.random_crop(img,crop_dim)
+    elif roll < 0.6:
+        radian = rng.uniform(low=-0.2, high=0.2)
+        img = tfa.image.rotate(img, radian)
+    elif roll < 0.8:
+        img = tf.image.flip_left_right(img)
+    else:
+        pass
+    
+    img = tf.image.resize(img, max_dim)    
 
     return img
 

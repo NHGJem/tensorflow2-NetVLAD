@@ -152,7 +152,7 @@ def test_metrics(embed_path, path2txt, building, query_number, labels_dictionary
             denominator += 1
             sum_of_fractions += (numerator/denominator)
         elif img_name in junk_dictionary[query_name]:
-            #denominator += 1  # if this is commented out, junk images are ignored. otherwise, junk images are negative. copy code from the if-block to make junk images positive.
+            #denominator += 1  # if this is commented out, junk images are ignored. otherwise, junk images are full negatives. copy code from the if-block to make junk images full positives.
             pass 
         else:
             denominator += 1
@@ -162,6 +162,60 @@ def test_metrics(embed_path, path2txt, building, query_number, labels_dictionary
     else:
         ap = sum_of_fractions/total_num_positives
 
-    recall = numerator/total_num_positives
+    return ap
 
-    return ap, recall
+# TODO
+def test_metrics_semipositive_junk(embed_path, path2txt, building, query_number, labels_dictionary, junk_dictionary, k): 
+    
+    query_name = building+'_{}'.format(query_number)
+
+    query = query_name+'_query.txt'
+
+    ### get the query image path from the _query.txt
+    with open(os.path.join(path2txt,query)) as file:
+        contents = file.read().split(' ') 
+        query_image_name = contents[0].replace('oxc1_','')+".npy" #remove the oxc1_ part which exists in the oxford query txt
+
+    query_embed = np.load(os.path.join(embed_path,query_image_name))
+
+    # Create similarity list
+    similarity_list = []
+    name_list = []
+    for dirname, _, list_of_filenames in os.walk(embed_path):
+        for filename in list_of_filenames:
+            if filename != query_image_name:
+                compare_embed = np.load(os.path.join(embed_path,filename))
+                euc_dist = np.sum(np.square(query_embed - compare_embed))
+                similarity_list.append(euc_dist)
+                name_list.append(filename)
+    similarity_list = np.asarray(similarity_list)
+    indexes = (similarity_list).argsort()[:k]
+    best_matches = [name_list[index] for index in indexes]
+    
+    # example: [1,1,0,0,1,1], 5 total positives: (1+1+0+0+3/5+4/6)/5
+    total_num_positives = len(labels_dictionary[query_name])
+    total_num_junk = len(junk_dictionary[query_name])
+    numerator = 0
+    denominator = 0
+    sum_of_fractions = 0
+    for img_name in best_matches:
+        img_name = img_name.replace('.npy','.jpg')
+        denominator += 1
+        if img_name in labels_dictionary[query_name]:
+            numerator += 1
+            sum_of_fractions += (numerator/denominator)
+        elif img_name in junk_dictionary[query_name]:
+            if numerator >= total_num_positives:        # the first time this occurs, all positives have appeared. junks are now treated as full positives.
+                numerator +=1
+            else:     # otherwise, junks do not raise the numerator, but still contribute to AP as semipositives instead of being 0 like a full negative.
+                pass
+            sum_of_fractions += (numerator/denominator)
+        else:
+            pass
+
+    if (total_num_positives+total_num_junk) > denominator:
+        ap = sum_of_fractions/denominator
+    else:
+        ap = sum_of_fractions/(total_num_positives++total_num_junk)
+
+    return ap

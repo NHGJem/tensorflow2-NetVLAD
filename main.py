@@ -27,7 +27,7 @@ import netvlad_layer as netvlad
 #------------------------------------------------------------------------------
 ##################### Important configurations #####################
 
-WHICH_DATASET = 'paris' # 'oxford' or 'paris' 
+WHICH_DATASET = 'oxford' # 'oxford' or 'paris' 
 
 # Path to images
 OXFORD_PATH = os.path.join('..','data','oxbuild_images_zipped','oxbuild_images')
@@ -47,8 +47,8 @@ BASE_WEIGHT_PATH = os.path.join('..','data','weights','vgg16_weights_notop.h5')
 # Use weights from previously trained NetVLAD models (e.g. continuing training)
 USE_TRAINED_WEIGHTS = False
 TRAIN_CONV5 = False              # Train last conv layer of VGG16 too, or train only NetVLAD layers
-OXFORD_WEIGHTS_PATH = '...'      # If USE_TRAINED_WEIGHTS = True, put path to weights here in the same format as BASE_WEIGHT_PATH
-PARIS_WEIGHTS_PATH = '...'        
+OXFORD_WEIGHTS_PATH = '../outputs/weights/oxford/20200731-015852_epo140_model.h5'      # If USE_TRAINED_WEIGHTS = True, put path to weights here in the same format as BASE_WEIGHT_PATH
+PARIS_WEIGHTS_PATH = '../outputs/weights/paris/20200730-141251_epo100_model.h5'        
 
 # Save output logs (for Tensorboard) and weights
 current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -73,7 +73,7 @@ LOSS_MARGIN = 0.1     # Margin for triplet loss
 
 # Epoch settings
 STARTING_EPOCH = 0    # set to 0 if it's a fresh training, set to the last epoch number of previous training if continued
-EPOCHS = 100          # training will proceed until epoch no. STARTING_EPOCH+EPOCHS-1
+EPOCHS = 200          # training will proceed until epoch no. STARTING_EPOCH+EPOCHS-1
 
 paris_labels = ['defense','eiffel','invalides','louvre','moulinrouge','museedorsay','notredame','pantheon','pompidou','sacrecoeur','triomphe']
 oxford_labels = ['all_souls','ashmolean','balliol','bodleian','christ_church','cornmarket','hertford','keble','magdalen','pitt_rivers','radcliffe_camera']
@@ -147,6 +147,8 @@ base_model = tf.keras.applications.VGG16(include_top=False,
                                          weights=BASE_WEIGHT_PATH,
                                          input_shape=IMG_SHAPE)
 
+base_model.trainable = False
+
 NetVLAD_layer = netvlad.NetVLAD()
 dim_expansion = Lambda(lambda a: tf.expand_dims(a,axis=-2))
 reduction_layer = Conv2D(4096,(1,1))
@@ -163,7 +165,7 @@ model = tf.keras.Sequential([
 
 ### Use pre-trained model or train conv5 too ----------------------------------
 if USE_TRAINED_WEIGHTS:
-    model = tf.keras.models.load_model(trained_weights_path, custom_objects={'NetVLAD': NetVLAD})
+    model = tf.keras.models.load_model(trained_weights_path, custom_objects={'NetVLAD': netvlad.NetVLAD})
 else:
     pass
 
@@ -190,7 +192,7 @@ optimizer = tfa.optimizers.SGDW(weight_decay = 0.001, momentum = 0.9)
 if VARIABLE_LR:
     lr_sched = tf.keras.experimental.CosineDecayRestarts(initial_learning_rate = LEARNING_RATE,
                                                          first_decay_steps = 10,
-                                                         t_mul=1.0, m_mul=0.9, alpha=0.1)
+                                                         t_mul=1.0, m_mul=0.8, alpha=0.1)
 else:
     lr_sched = tf.keras.experimental.CosineDecayRestarts(initial_learning_rate = LEARNING_RATE,
                                                          first_decay_steps = 1,
@@ -239,7 +241,7 @@ def test_step(x):
     print("Testing Against Queries...")
     for building in label_list:
         for query_number in range (1,6):
-            ap, _ = emb.test_metrics(embed_path, path2txt, building, query_number, labels_dictionary, junk_dictionary, k = -1)
+            ap = emb.test_metrics(embed_path, path2txt, building, query_number, labels_dictionary, junk_dictionary, k = -1)
             
             mean_ap.update_state(ap)
             count += 1
@@ -262,7 +264,7 @@ for epoch in range(EPOCHS):
     valid_ds = validation_mapped.batch(TRIPLET_SIZE)
 
     for index, batch in enumerate(train_ds):
-        optimizer._set_hyper("learning_rate",lr_sched(epoch))
+        optimizer._set_hyper("learning_rate",lr_sched(epoch+STARTING_EPOCH))
         train_step(batch)
         progbar.update(index+1, values = [('Loss', train_loss.result())])
         if index+1 >= BATCH_SIZE:
