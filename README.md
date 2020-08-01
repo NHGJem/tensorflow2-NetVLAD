@@ -13,9 +13,9 @@ NetVLAD in Tensorflow 2.0 for Deep Image Retrieval. Trained on Oxford5k/Paris6k 
 - [Results](#results)
    - [Paris Dataset](#paris-dataset)
    - [Oxford Dataset](#oxford-dataset)
-- [Result Graphs](#result_graphs)
-   - [Paris Dataset](#training_and_validation_loss_curve_of_paris)
-   - [Oxford Dataset](#training_and_validation_loss_curve_of_oxford)
+- [Result Graphs](#result-graphs)
+   - [Paris Dataset](#training-and-validation-loss-curve-of-paris)
+   - [Oxford Dataset](#training-and-validation-loss-curve-of-oxford)
    
 ## Introduction
 Goal of this project is to construct a NetVLAD model in Tensorflow 2 for end-to-end learning of deep image retrieval. Images are learnt as embeddings and then ranked according to shortest euclidean distance. 
