@@ -115,54 +115,7 @@ def triplet_generator(path2txt, querytxt, train, mean, std, filetype='jpg'):
 def dataset_maker(path2txt, querytxt, train, mean, std):
     for i in itertools.count():
         yield triplet_generator(path2txt, querytxt, train, mean, std)
-
-'''def decode_augment_old(path, mean, std, img_size = 224):
-    
-    max_dim = tf.convert_to_tensor([img_size,img_size], dtype=tf.int32)
-    
-    img = tf.io.read_file(path)
-    img = tf.image.decode_jpeg(img, channels=3)
-    img = tf.image.convert_image_dtype(img, tf.float32)
-
-    img = tf.image.resize(img, max_dim)
-    
-    img = tf.math.subtract(img,mean)
-    img = tf.math.divide(img,std)
-    
-    ## Cropping zone
-    roll = tf.random.uniform([])
-    fraction = rng.uniform(low=0.5)
-    if roll < 0.3:
-        img = tf.image.central_crop(img,fraction)
-    elif roll < 0.6:
-        crop_dim = tf.math.multiply(tf.cast(max_dim, tf.float32),fraction)
-        crop_dim = tf.cast(tf.math.round(crop_dim), tf.int32)
-        crop_dim = tf.concat([crop_dim, [3]], 0)
-        img = tf.image.random_crop(img,crop_dim)
-    else:
-        pass        
-    img = tf.image.resize(img, max_dim)
-
-    ## Color ops zone
-    if tf.random.uniform([]) < 0.3:
-        img = tf.image.random_brightness(img, 0.2)
-    if tf.random.uniform([]) < 0.3:
-        img = tf.image.random_contrast(img, 1, 2)
-    if tf.random.uniform([]) < 0.3:
-        img = tf.image.random_saturation(img, 1, 3)
-
-    ## Transform ops zone
-    radian = rng.uniform(low=-0.2, high=0.2)
-    img = tfa.image.rotate(img, radian)
-
-    roll = rng.uniform()
-    if roll < 0.3:
-        roll = round(roll*img_size)
-        dx = rng.uniform(-roll,roll)
-        dy = rng.uniform(-roll,roll)
-        img = tfa.image.translate(img, [dx,dy])
-
-    return img'''
+        
 
 def decode_augment(path, mean, std, img_size = 224):
     

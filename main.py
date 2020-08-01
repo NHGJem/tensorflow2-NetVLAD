@@ -27,7 +27,7 @@ import netvlad_layer as netvlad
 #------------------------------------------------------------------------------
 ##################### Important configurations #####################
 
-WHICH_DATASET = 'oxford' # 'oxford' or 'paris' 
+WHICH_DATASET = 'paris' # 'oxford' or 'paris' 
 
 # Path to images
 OXFORD_PATH = os.path.join('..','data','oxbuild_images_zipped','oxbuild_images')
@@ -47,8 +47,8 @@ BASE_WEIGHT_PATH = os.path.join('..','data','weights','vgg16_weights_notop.h5')
 # Use weights from previously trained NetVLAD models (e.g. continuing training)
 USE_TRAINED_WEIGHTS = False
 TRAIN_CONV5 = False              # Train last conv layer of VGG16 too, or train only NetVLAD layers
-OXFORD_WEIGHTS_PATH = '../outputs/weights/oxford/20200731-015852_epo140_model.h5'      # If USE_TRAINED_WEIGHTS = True, put path to weights here in the same format as BASE_WEIGHT_PATH
-PARIS_WEIGHTS_PATH = '../outputs/weights/paris/20200731-125616_epo140_model.h5'        
+OXFORD_WEIGHTS_PATH = '...'      # If USE_TRAINED_WEIGHTS = True, put path to weights here in the same format as BASE_WEIGHT_PATH
+PARIS_WEIGHTS_PATH = '...'        
 
 # Save output logs (for Tensorboard) and weights
 current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -184,6 +184,7 @@ else:
 train_loss = tf.keras.metrics.Mean(name='train_loss')
 valid_loss = tf.keras.metrics.Mean(name='valid_loss')
 mean_ap = tf.keras.metrics.Mean(name='mean_ap')
+mean_ap_semipos = tf.keras.metrics.Mean(name='mean_ap_semipos')
 
 # Create optimizer
 optimizer = tfa.optimizers.SGDW(weight_decay = 0.001, momentum = 0.9)
@@ -242,15 +243,17 @@ def test_step(x):
     for building in label_list:
         for query_number in range (1,6):
             ap = emb.test_metrics(embed_path, path2txt, building, query_number, labels_dictionary, junk_dictionary, k = -1)
-            
             mean_ap.update_state(ap)
+            
+            ap2 = emb.test_metrics_semipositive_junk(embed_path, path2txt, building, query_number, labels_dictionary, junk_dictionary, k = -1)
+            mean_ap_semipos.update_state(ap2)
             count += 1
-            progbar2.update(count, values = [('mAP', mean_ap.result())])
+            progbar2.update(count, values = [('mAP', mean_ap.result()),('mAP with Semipositives', mean_ap_semipos.result())])
             
 # Create progbars
 progbar = tf.keras.utils.Progbar(BATCH_SIZE, stateful_metrics = ['Loss'], verbose=1)
 progbar_v = tf.keras.utils.Progbar(BATCH_SIZE, stateful_metrics = ['Validation Loss'], verbose=1)
-progbar2 = tf.keras.utils.Progbar(55, stateful_metrics = ['mAP'])
+progbar2 = tf.keras.utils.Progbar(55, stateful_metrics = ['mAP', 'mAP with Semipositives'])
 ### ---------------------------------------------------------------------------
 
 ### Training loop -------------------------------------------------------------
@@ -283,11 +286,13 @@ for epoch in range(EPOCHS):
         
     if (epoch == EPOCHS-1) or (epoch%20 == 0):
         mean_ap.reset_states()
+        mean_ap_semipos.reset_states()
         test_step(val_x)
         with test_summary_writer.as_default():
             tf.summary.scalar('mAP', mean_ap.result(), step=epoch+STARTING_EPOCH)
+            tf.summary.scalar('mAP with semi-positive', mean_ap_semipos.result(), step=epoch+STARTING_EPOCH)
         model.save(os.path.join(OUTPUT_WEIGHT_PATH,'{}_epo{}_model.h5'.format(current_time,epoch+STARTING_EPOCH)))
 
-    template = 'Epoch {}, Loss: {}, Validation Loss: {}, mAP: {} \n ------------'
-    tf.print(template.format(epoch+STARTING_EPOCH + 1, train_loss.result(), valid_loss.result(), mean_ap.result()))
+    template = 'Epoch {}, Loss: {}, Validation Loss: {}, mAP: {} (With semi-pos: {}) \n ------------'
+    tf.print(template.format(epoch+STARTING_EPOCH + 1, train_loss.result(), valid_loss.result(), mean_ap.result(), mean_ap_semipos.result()))
 ### ---------------------------------------------------------------------------
