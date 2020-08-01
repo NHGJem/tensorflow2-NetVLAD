@@ -9,11 +9,14 @@ NetVLAD in Tensorflow 2.0 for Deep Image Retrieval. Trained on Oxford5k/Paris6k 
 - [Metrics](#metrics)
 - [Hyperparameters](#hyperparameters)
 - [Data Augmentations](#data-augmentations)
+- [Setup and Usage](#setup-and-usage)
 - [Results](#results)
    - [Paris Dataset](#paris-dataset)
    - [Oxford Dataset](#oxford-dataset)
-- [Setup and Usage](#setup-and-usage)
-
+- [Result Graphs](#result_graphs)
+   - [Paris Dataset](#training_and_validation_loss_curve_of_paris)
+   - [Oxford Dataset](#training_and_validation_loss_curve_of_oxford)
+   
 ## Introduction
 Goal of this project is to construct a NetVLAD model in Tensorflow 2 for end-to-end learning of deep image retrieval. Images are learnt as embeddings and then ranked according to shortest euclidean distance. 
 
@@ -66,6 +69,9 @@ Prior to augmentation, non-square images were cropped into squares to preserve a
 
 Tests were also performed without augmentations, for comparison.
 
+## Setup and Usage
+Change the variables in main.py, ensure all paths to the image folder and ground truths are set correctly, then run main.py.
+
 ## Results
 
 ### **Paris Dataset**
@@ -76,15 +82,6 @@ mAP | Ignore Junk | Semipositive Junk
 **Ours - Augmented** | 88.2% | 57.9%
 **Ours - Model trained on Augmented Oxford dataset** | 49.4% | 39.7%
 
-#### **Training and Validation Loss Curve**
-Due to interruptions in training, it had to be restarted from checkpoints. As such, the complete curves are made from the curves of three logs.
-
-![Paris Training Loss](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/paris_trainloss.png)
-![Paris Validation Loss](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/paris_validloss.png)
-
-#### **mAP of augmented training model**
-![Paris mAP](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/paris_map.png)
-
 ### **Oxford Dataset**
 mAP | Ignore Junk | Semipositive Junk
 --- | --- |---
@@ -93,15 +90,20 @@ mAP | Ignore Junk | Semipositive Junk
 **Ours - Augmented** | 76.5% | 49.7%
 **Ours - Model trained on Augmented Paris dataset** | 37.0% | 32.5%
 
-#### **Training and Validation Loss Curve**
+## Result Graphs
+
+### **Training and Validation Loss Curve of Paris**
+Due to interruptions in training, it had to be restarted from checkpoints. As such, the complete curves are made from the curves of three logs.
+
+![Paris Training Loss](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/paris_trainloss.png)
+![Paris Validation Loss](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/paris_validloss.png)
+
+### **mAP of model (Augmented Paris Images)**
+![Paris mAP](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/paris_map.png)
+
+### **Training and Validation Loss Curve of Oxford**
 ![Oxford Training Loss](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/oxford_trainloss.png)
 ![Oxford Validation Loss](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/oxford_validloss.png)
 
-#### **mAP of augmented training model**
+### **mAP of model (Augmented Oxford Images)***
 ![Oxford mAP](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/oxford_map.png)
-
-## Setup and Usage
-Change the variables in main.py, ensure all paths to the image folder and ground truths are set correctly, then run main.py.
-
-
-
