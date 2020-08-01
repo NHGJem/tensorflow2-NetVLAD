@@ -171,7 +171,14 @@ def decode_augment(path, mean, std, img_size = 224):
     img = tf.io.read_file(path)
     img = tf.image.decode_jpeg(img, channels=3)
     img = tf.image.convert_image_dtype(img, tf.float32)
-
+    
+    h, w = tf.shape(img)[0], tf.shape(img)[1]
+    if h > w:
+        h = w
+    else:
+        w = h
+    
+    img = tf.image.resize_with_crop_or_pad(img, h, w)
     img = tf.image.resize(img, max_dim)
     
     ## Photometric Augmentations - Apply brightness, or contrast, or saturation, or none
@@ -228,7 +235,14 @@ def decode_only(path, mean, std, img_size = 224):
     img = tf.io.read_file(path)
     img = tf.image.decode_jpeg(img, channels=3)
     img = tf.image.convert_image_dtype(img, tf.float32)
-
+    
+    h, w = tf.shape(img)[0], tf.shape(img)[1]
+    if h > w:
+        h = w
+    else:
+        w = h
+    
+    img = tf.image.resize_with_crop_or_pad(img, h, w)
     img = tf.image.resize(img, max_dim)
     
     img = tf.math.subtract(img,mean)

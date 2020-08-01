@@ -48,7 +48,7 @@ BASE_WEIGHT_PATH = os.path.join('..','data','weights','vgg16_weights_notop.h5')
 USE_TRAINED_WEIGHTS = False
 TRAIN_CONV5 = False              # Train last conv layer of VGG16 too, or train only NetVLAD layers
 OXFORD_WEIGHTS_PATH = '../outputs/weights/oxford/20200731-015852_epo140_model.h5'      # If USE_TRAINED_WEIGHTS = True, put path to weights here in the same format as BASE_WEIGHT_PATH
-PARIS_WEIGHTS_PATH = '../outputs/weights/paris/20200730-141251_epo100_model.h5'        
+PARIS_WEIGHTS_PATH = '../outputs/weights/paris/20200731-125616_epo140_model.h5'        
 
 # Save output logs (for Tensorboard) and weights
 current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
