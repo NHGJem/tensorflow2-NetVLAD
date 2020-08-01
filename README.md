@@ -79,16 +79,16 @@ mAP | Ignore Junk | Semipositive Junk
 --- | --- |---
 **NetVLAD Paper - Trained on Pittsburgh** | 78.5% | -
 **Ours - Unaugmented** | 87.4% | 60.4%
-**Ours - Augmented** | 88.2% | 57.9%
-**Ours - Model trained on Augmented Oxford dataset** | 49.4% | 39.7%
+**Ours - Augmented** | 88.0% | 61.6%
+**Ours - Model trained on Augmented Oxford dataset** | 53.1% | 36.1%
 
 ### **Oxford Dataset**
 mAP | Ignore Junk | Semipositive Junk
 --- | --- |---
 **NetVLAD Paper - Trained on Pittsburgh** | 69.1% | -
 **Ours - Unaugmented** | 79.6% | 60.5%
-**Ours - Augmented** | 76.5% | 49.7%
-**Ours - Model trained on Augmented Paris dataset** | 37.0% | 32.5%
+**Ours - Augmented** | 76.1% | 59.1%
+**Ours - Model trained on Augmented Paris dataset** | 30.3% | 23.5%
 
 ## Result Graphs
 
