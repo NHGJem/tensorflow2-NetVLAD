@@ -105,5 +105,5 @@ Due to interruptions in training, it had to be restarted from checkpoints. As su
 ![Oxford Training Loss](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/oxford_trainloss.png)
 ![Oxford Validation Loss](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/oxford_validloss.png)
 
-### **mAP of model (Augmented Oxford Images)***
+### **mAP of model (Augmented Oxford Images)**
 ![Oxford mAP](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/oxford_map.png)
