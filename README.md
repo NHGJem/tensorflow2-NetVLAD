@@ -75,20 +75,26 @@ Change the variables in main.py, ensure all paths to the image folder and ground
 ## Results
 
 ### **Paris Dataset**
-mAP | Ignore Junk | Semipositive Junk
---- | --- |---
-**NetVLAD Paper - Trained on Pittsburgh** | 78.5% | -
-**Ours - Unaugmented** | 87.4% | 60.4%
-**Ours - Augmented** | 88.0% | 61.6%
-**Ours - Model trained on Augmented Oxford dataset** | 53.1% | 36.1%
+mAP | Ignore Junk | Semipositive Junk | Remarks
+--- | --- | --- | ---
+**NetVLAD Paper - Trained on Pittsburgh** | 78.5% | - | -
+**Ours - Unaugmented** | 87.4% | 60.4% | Trained on all images
+**Ours - Augmented** | 88.0% | 61.6% | Trained on all images
+**Ours - Augmented*** | 53.1% | 36.1% | Model swap - Trained on all *Oxford* images
+**Ours - Augmented** | 88.2% | 57.9% | Trained on 80-20 split
+**Ours - Augmented*** | 59.1% | 39.7% | Model swap - Trained on 80-20 split of *Oxford* images
 
 ### **Oxford Dataset**
-mAP | Ignore Junk | Semipositive Junk
---- | --- |---
-**NetVLAD Paper - Trained on Pittsburgh** | 69.1% | -
-**Ours - Unaugmented** | 79.6% | 60.5%
-**Ours - Augmented** | 76.1% | 59.1%
-**Ours - Model trained on Augmented Paris dataset** | 30.3% | 23.5%
+mAP | Ignore Junk | Semipositive Junk | Remarks
+--- | --- | --- | ---
+**NetVLAD Paper - Trained on Pittsburgh** | 69.1% | - | -
+**Ours - Unaugmented** | 79.6% | 60.5% | Trained on all images
+**Ours - Augmented** | 76.1% | 59.1% | Trained on all images
+**Ours - Augmented*** | 30.3% | 23.5% | Model swap - Trained on all *Paris* images
+**Ours - Augmented** | 76.5% | 49.7% | Trained on 80-20 split
+**Ours - Augmented*** | 41.6% | 32.5% | Model swap - Trained on 80-20 split of *Paris* images
+
+Augmentations applied did not seem to increase results by much, sometimes performing worse. The model is also more generalized when *less* images are shown, possibly because showing more images results in overfitting towards the dataset trained on.
 
 ## Result Graphs
 
