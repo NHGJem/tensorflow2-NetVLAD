@@ -33,6 +33,8 @@ The negative image used for any query and positive image was a positive image of
 ## Deep Learning Architecture
 The NetVLAD layer, originally designed usign MatLab ([Github Page](https://github.com/Relja/netvlad)), was modified to be a custom keras layer compatible with Tensorflow 2 ([Github Page](https://github.com/crlz182/Netvlad-Keras)). The layer is then joined to the VGG16 model with its Fully-Connected layers removed, and weights pre-trained on ImageNet.
 
+Only the weights in the NetVLAD layer are trained, but there is an option to allow for the conv5 layer of the VGG model to be trained.
+
 ![Image of Model](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/model.png)
 
 ## Metrics
