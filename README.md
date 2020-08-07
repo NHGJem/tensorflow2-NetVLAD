@@ -49,7 +49,7 @@ A model swap was also performed, where the model trained on Paris was used to ev
 ## Hyperparameters
 Object | Value
  --- | --- 
- Image size | (224, 224, 3) 
+ Image size | (224, 224, 3) OR (300, 300, 3) (see Remarks in results)
  Batch size | 20 (Parameters updated every 16 triplets)
  Epoch | 200 (Maximum mAP tends to be achieved before 200) 
  Loss Margin | 0.1
@@ -85,6 +85,8 @@ mAP | Ignore Junk | Semipositive Junk | Remarks
 **Ours - Augmented*** | 53.1% | 36.1% | Model swap - Trained on all *Oxford* images
 **Ours - Augmented** | 88.2% | 57.9% | Trained on 80-20 split
 **Ours - Augmented*** | 59.1% | 39.7% | Model swap - Trained on 80-20 split of *Oxford* images
+**Ours - Augmented** | 90.3% | 63.0% | Trained on 80-20 split with image size of (300, 300, 3)
+**Ours - Augmented*** | 66.0% | 44.6% | Model swap - Trained on 80-20 split of *Oxford* images with image size of (300, 300, 3)
 
 ### **Oxford Dataset**
 mAP | Ignore Junk | Semipositive Junk | Remarks
@@ -95,6 +97,8 @@ mAP | Ignore Junk | Semipositive Junk | Remarks
 **Ours - Augmented*** | 30.3% | 23.5% | Model swap - Trained on all *Paris* images
 **Ours - Augmented** | 76.5% | 49.7% | Trained on 80-20 split
 **Ours - Augmented*** | 41.6% | 32.5% | Model swap - Trained on 80-20 split of *Paris* images
+**Ours - Augmented** | 76.8% | 59.6% | Trained on 80-20 split with image size of (300, 300, 3)
+**Ours - Augmented*** | 36.7% | 28.6% | Model swap - Trained on 80-20 split of *Paris* images with image size of (300, 300, 3)
 
 Augmentations applied did not seem to increase results by much, sometimes performing worse. The model is also more generalized when *less* images are shown, possibly because showing more images results in overfitting towards the dataset trained on.
 
