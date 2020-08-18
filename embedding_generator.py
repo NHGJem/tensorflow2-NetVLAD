@@ -74,6 +74,45 @@ def images_with_labels(path2txt, label_list, filetype='jpg'):
         
     return label_dict, junk_dict
 
+def images_with_labels_for_delf(path2txt, label_list, filetype='jpg'):
+    path2txt = path2txt#.decode()
+    
+    label_dict = {}
+    junk_dict = {}
+    
+    for i in range(len(label_list)):
+        label = label_list[i]#.decode()
+        
+        for j in range(1,6):
+            query_name = label+'_{}'.format(j)
+            
+            query = query_name+'_query.txt'
+            good = query_name+'_good.txt'
+            ok = query_name+'_ok.txt'
+            junk = query_name+'_junk.txt'
+            
+            ### get the query image path from the _query.txt
+            with open(os.path.join(path2txt,query)) as file:
+                contents = file.read().split(' ') 
+                query_image_name = contents[0].replace('oxc1_','')+"."+filetype #remove the oxc1_ part which exists in the oxford query txt
+                
+            list_of_good = pipe.generate_img_list(path2txt, good)
+            list_of_ok = pipe.generate_img_list(path2txt, ok)
+            list_of_junk = pipe.generate_img_list(path2txt, junk)
+            
+            tmp_list = list_of_good + list_of_ok
+            tmp_list = list(set(tmp_list))
+        
+            label_dict[query_image_name] = tmp_list
+            
+            tmp_list2 = list_of_junk
+            tmp_list2 = list(set(tmp_list2))
+            
+            junk_dict[query_image_name] = tmp_list2
+        
+    return label_dict, junk_dict
+
+
 def validation_dataset_generator(pathname, batchsize = 64):
     list_of_names = []
     for dirname, _, list_of_filenames in os.walk(pathname):
@@ -88,10 +127,10 @@ def validation_dataset_generator(pathname, batchsize = 64):
         return ds
 
 
-def embedding_generator(paths,model,batchsize, mean, std):    
+def embedding_generator(paths,model,batchsize, mean, std, img_size):    
     tensors = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
     for image in paths:
-        decoded = pipe.decode_only(image, mean, std)
+        decoded = pipe.decode_only(image, mean, std, img_size)
         tensors = tensors.write(tensors.size(),decoded)
     tensors = tensors.stack()
     embeddings = model(tensors, training = False)
@@ -103,17 +142,17 @@ def make_one_npy(npy_name,tensor,embed_folder):
     np.save(os.path.join(embed_folder,name),tensor)
     return
 
-def generate_all_embeddings(ds,model,embed_path,batchsize, mean, std):
+def generate_all_embeddings(ds,model,embed_path,batchsize, mean, std, img_size):
     for batch in ds: # (32, 2)
         paths = batch[:,0]                         # (32, ) containing paths of the 32 images
-        embeds = embedding_generator(paths,model,batchsize, mean, std)  # outputs embeddings of the 32
+        embeds = embedding_generator(paths,model,batchsize, mean, std, img_size)  # outputs embeddings of the 32
         embeds = tf.unstack(embeds)                # convert into an (iteratable) list of 32 embeddings 
         label = batch[:,1]                         # (32, ) containing names of the 32 images
         for index,one_embed in enumerate(embeds):
             make_one_npy(label[index],one_embed,embed_path)
     return
 
-def test_metrics(embed_path, path2txt, building, query_number, labels_dictionary, junk_dictionary, k):
+def test_metrics(embed_path, path2txt, building, query_number, labels_dictionary, junk_dictionary):
     
     query_name = building+'_{}'.format(query_number)
 
@@ -137,7 +176,7 @@ def test_metrics(embed_path, path2txt, building, query_number, labels_dictionary
                 similarity_list.append(euc_dist)
                 name_list.append(filename)
     similarity_list = np.asarray(similarity_list)
-    indexes = (similarity_list).argsort()[:k]
+    indexes = (similarity_list).argsort()[:]
     best_matches = [name_list[index] for index in indexes]
     
     # example: [1,1,0,0,1,1], 5 total positives: (1+1+0+0+3/5+4/6)/5
@@ -165,7 +204,7 @@ def test_metrics(embed_path, path2txt, building, query_number, labels_dictionary
     return ap
 
 # TODO
-def test_metrics_semipositive_junk(embed_path, path2txt, building, query_number, labels_dictionary, junk_dictionary, k): 
+def test_metrics_semipositive_junk(embed_path, path2txt, building, query_number, labels_dictionary, junk_dictionary): 
     
     query_name = building+'_{}'.format(query_number)
 
@@ -189,7 +228,7 @@ def test_metrics_semipositive_junk(embed_path, path2txt, building, query_number,
                 similarity_list.append(euc_dist)
                 name_list.append(filename)
     similarity_list = np.asarray(similarity_list)
-    indexes = (similarity_list).argsort()[:k]
+    indexes = (similarity_list).argsort()[:]
     best_matches = [name_list[index] for index in indexes]
     
     # example: [1,1,0,0,1,1], 5 total positives: (1+1+0+0+3/5+4/6)/5

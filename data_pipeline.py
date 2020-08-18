@@ -38,7 +38,7 @@ def generate_img_list(path2txt, filename, filetype='jpg'):
     return img_list
 
 
-def triplet_generator(path2txt, querytxt, train, mean, std, filetype='jpg'):
+def triplet_generator(path2txt, querytxt, train, mean, std, img_size, filetype='jpg'):
     path2txt = path2txt.decode()
     
     list_of_paths = []
@@ -109,15 +109,15 @@ def triplet_generator(path2txt, querytxt, train, mean, std, filetype='jpg'):
     list_of_paths.append(positive_image_path)
     list_of_paths.append(negative_image_path)
         
-    return tuple(list_of_paths), train, mean, std
+    return tuple(list_of_paths), train, mean, std, img_size
 
 
-def dataset_maker(path2txt, querytxt, train, mean, std):
+def dataset_maker(path2txt, querytxt, train, mean, std, img_size):
     for i in itertools.count():
-        yield triplet_generator(path2txt, querytxt, train, mean, std)
+        yield triplet_generator(path2txt, querytxt, train, mean, std, img_size)
         
 
-def decode_augment(path, mean, std, img_size = 224):
+def decode_augment(path, mean, std, img_size):
     
     max_dim = tf.convert_to_tensor([img_size,img_size], dtype=tf.int32)
     
@@ -156,11 +156,10 @@ def decode_augment(path, mean, std, img_size = 224):
     
     roll = rng.uniform()
     fraction = rng.uniform(low=0.7)
-    
+
     if roll < 0.2:
-        delta = round(roll/4*img_size)
-        dx = rng.uniform(-delta,delta)
-        dy = rng.uniform(-delta,delta)
+        dx = rng.uniform(low = -15, high = 15)
+        dy = rng.uniform(low = -15, high = 15)
         img = tfa.image.translate(img, [dx,dy])
     elif roll < 0.3:
         img = tf.image.central_crop(img,fraction)    
@@ -181,7 +180,7 @@ def decode_augment(path, mean, std, img_size = 224):
 
     return img
 
-def decode_only(path, mean, std, img_size = 224):
+def decode_only(path, mean, std, img_size):
     
     max_dim = tf.convert_to_tensor([img_size,img_size], dtype=tf.int32)
     
@@ -203,11 +202,11 @@ def decode_only(path, mean, std, img_size = 224):
 
     return img
 
-def decoder_function(paths, train, mean, std, img_size = 224):
+def decoder_function(paths, train, mean, std, img_size):
     
     single_input = []
-    mean = tf.broadcast_to(mean,[224,224,3])
-    std = tf.broadcast_to(std,[224,224,3])
+    mean = tf.broadcast_to(mean,[img_size,img_size,3])
+    std = tf.broadcast_to(std,[img_size,img_size,3])
     
     for image in paths:
         decoded = tf.cond(train == True, true_fn = lambda: decode_augment(image, mean, std, img_size), false_fn = lambda: decode_only(image, mean, std, img_size))

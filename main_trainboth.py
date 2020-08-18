@@ -27,7 +27,7 @@ import netvlad_layer as netvlad
 #------------------------------------------------------------------------------
 ##################### Important configurations #####################
 
-WHICH_DATASET = 'paris' # 'oxford' or 'paris'
+WHICH_DATASET = 'both' # only 'both' is a valid setting
 
 # Path to images
 OXFORD_PATH = os.path.join('..','data','oxbuild_images_zipped','oxbuild_images')
@@ -43,7 +43,7 @@ OXFORD_EMBEDS = os.path.join('..','outputs','oxford_embed')
 
 # Path to load VGG16 weights trained on ImageNet
 #BASE_WEIGHT_PATH = os.path.join('..','data','weights','vgg16_weights_notop.h5')
-# Which base to use: VGG16, MobileNetV2, or ResNet50V2 (case-sensitive, using non-VGG may cause OOM errors)
+# Which base to use: VGG16, MobileNetV2, or ResNet50V2 (case-sensitive)
 BASE_MODEL = 'VGG16'
 k_value = 64                    # VGG's settings are 64 and 4096. To keep the number of parameters relative,
 embed_dimension = 4096          # divide one of these by a factor of 2 for MobileNet, and a factor of 4 (or both at factor of 2) for ResNet50.
@@ -51,8 +51,7 @@ embed_dimension = 4096          # divide one of these by a factor of 2 for Mobil
 # Use weights from previously trained NetVLAD models (e.g. continuing training)
 USE_TRAINED_WEIGHTS = False
 TRAIN_CONV5 = False              # Train last conv layer of VGG16 too, or train only NetVLAD layers. Leave as False if not using VGG16!
-OXFORD_WEIGHTS_PATH = '...'      # If USE_TRAINED_WEIGHTS = True, put path to weights here in the same format as BASE_WEIGHT_PATH
-PARIS_WEIGHTS_PATH = '...'        
+TRAINED_WEIGHTS_PATH = '...'      # If USE_TRAINED_WEIGHTS = True, put path to weights here   
 
 # Save output logs (for Tensorboard) and weights
 current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -68,7 +67,7 @@ TRIPLET_SIZE = 16     # Number of triplets in one minibatch
 BATCH_SIZE = 20       # Number of minibatches in one epoch
 VAL_BATCH_SIZE = 32   # Number of images to generate embeddings of at one time
 
-IMG_SIZE = 300
+IMG_SIZE = 224
 IMG_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
 
 LEARNING_RATE = 0.001
@@ -111,37 +110,23 @@ test_summary_writer = tf.summary.create_file_writer(os.path.join(LOGPATH,"test")
 ### ---------------------------------------------------------------------------
 
 ### Set up dataset depending on Paris or Oxford -------------------------------
-if WHICH_DATASET == 'paris':
-    mean = paris_mean
-    std = paris_std
-    query_list = pipe.generate_query_list(PARIS_PATH_TXT)
-    training_x = tf.data.Dataset.from_generator(pipe.dataset_maker, tuple_of_types, args = (PARIS_PATH_TXT,query_list,True, mean, std, IMG_SIZE))
-    validation_x = tf.data.Dataset.from_generator(pipe.dataset_maker, tuple_of_types, args = (PARIS_PATH_TXT,query_list,False, mean, std, IMG_SIZE))
-    trained_weights_path = PARIS_WEIGHTS_PATH
-    label_list = paris_labels
-elif WHICH_DATASET == 'oxford':
-    mean = oxford_mean
-    std = oxford_std
-    query_list = pipe.generate_query_list(OXFORD_PATH_TXT)
-    training_x = tf.data.Dataset.from_generator(pipe.dataset_maker, tuple_of_types, args = (OXFORD_PATH_TXT,query_list,True, mean, std, IMG_SIZE))
-    validation_x = tf.data.Dataset.from_generator(pipe.dataset_maker, tuple_of_types, args = (OXFORD_PATH_TXT,query_list,False, mean, std, IMG_SIZE))
-    trained_weights_path = OXFORD_WEIGHTS_PATH
-    label_list = oxford_labels
+if WHICH_DATASET == 'both':
+    paris_query_list = pipe.generate_query_list(PARIS_PATH_TXT)
+    paris_training_x = tf.data.Dataset.from_generator(pipe.dataset_maker, tuple_of_types, args = (PARIS_PATH_TXT,paris_query_list,True, paris_mean, paris_std, IMG_SIZE))
+    paris_validation_x = tf.data.Dataset.from_generator(pipe.dataset_maker, tuple_of_types, args = (PARIS_PATH_TXT,paris_query_list,False, paris_mean, paris_std, IMG_SIZE))
+    oxford_query_list = pipe.generate_query_list(OXFORD_PATH_TXT)
+    oxford_training_x = tf.data.Dataset.from_generator(pipe.dataset_maker, tuple_of_types, args = (OXFORD_PATH_TXT,oxford_query_list,True, oxford_mean, oxford_std, IMG_SIZE))
+    oxford_validation_x = tf.data.Dataset.from_generator(pipe.dataset_maker, tuple_of_types, args = (OXFORD_PATH_TXT,oxford_query_list,False, oxford_mean, oxford_std, IMG_SIZE))
 else:
     raise ValueError('WHICH_DATASET has an invalid string.')
 ### ---------------------------------------------------------------------------
 
 ### Set up dataset for mAP calculations ---------------------------------------
-if WHICH_DATASET == 'paris':
-    labels_dictionary, junk_dictionary = emb.images_with_labels(PARIS_PATH_TXT, paris_labels)
-    val_x = emb.validation_dataset_generator(PARIS_PATH, batchsize = VAL_BATCH_SIZE)
-    path2txt = PARIS_PATH_TXT
-    embed_path = PARIS_EMBEDS
-elif WHICH_DATASET == 'oxford':
-    labels_dictionary, junk_dictionary = emb.images_with_labels(OXFORD_PATH_TXT, oxford_labels)
-    val_x = emb.validation_dataset_generator(OXFORD_PATH, batchsize = VAL_BATCH_SIZE)
-    path2txt = OXFORD_PATH_TXT
-    embed_path = OXFORD_EMBEDS
+if WHICH_DATASET == 'both':
+    paris_labels_dictionary, paris_junk_dictionary = emb.images_with_labels(PARIS_PATH_TXT, paris_labels)
+    paris_val_x = emb.validation_dataset_generator(PARIS_PATH, batchsize = VAL_BATCH_SIZE)
+    oxford_labels_dictionary, oxford_junk_dictionary = emb.images_with_labels(OXFORD_PATH_TXT, oxford_labels)
+    oxford_val_x = emb.validation_dataset_generator(OXFORD_PATH, batchsize = VAL_BATCH_SIZE)
 else:
     raise ValueError('WHICH_DATASET has an invalid string.')
 ### ---------------------------------------------------------------------------
@@ -181,7 +166,7 @@ model = tf.keras.Sequential([
 
 ### Use pre-trained model or train conv5 too ----------------------------------
 if USE_TRAINED_WEIGHTS:
-    model = tf.keras.models.load_model(trained_weights_path, custom_objects={'NetVLAD': netvlad.NetVLAD})
+    model = tf.keras.models.load_model(TRAINED_WEIGHTS_PATH, custom_objects={'NetVLAD': netvlad.NetVLAD})
 else:
     pass
 
@@ -248,7 +233,7 @@ def valid_step(batch):
     valid_loss.update_state(loss)
     
 # Create test step
-def test_step(x):
+def test_step(x, embed_path, path2txt, mean, std, label_list, labels_dictionary, junk_dictionary):
     print("Generating Embeddings...") # implement a progbar? but number of batches is unknown
     tick = time()
     emb.generate_all_embeddings(x, model, embed_path, VAL_BATCH_SIZE, mean, std, IMG_SIZE)
@@ -277,33 +262,54 @@ for epoch in range(EPOCHS):
     train_loss.reset_states()
     valid_loss.reset_states()
     
-    training_mapped = training_x.map(pipe.decoder_function) # without running the decoder function again, the augmentations will be stale
-    validation_mapped = validation_x.map(pipe.decoder_function)
-    train_ds = training_mapped.batch(TRIPLET_SIZE)
-    valid_ds = validation_mapped.batch(TRIPLET_SIZE)
+    paris_training_mapped = paris_training_x.map(pipe.decoder_function) # without running the decoder function again, the augmentations will be stale
+    paris_validation_mapped = paris_validation_x.map(pipe.decoder_function)
+    paris_train_ds = paris_training_mapped.batch(TRIPLET_SIZE)
+    paris_valid_ds = paris_validation_mapped.batch(TRIPLET_SIZE)
+    
+    oxford_training_mapped = oxford_training_x.map(pipe.decoder_function) # without running the decoder function again, the augmentations will be stale
+    oxford_validation_mapped = oxford_validation_x.map(pipe.decoder_function)
+    oxford_train_ds = oxford_training_mapped.batch(TRIPLET_SIZE)
+    oxford_valid_ds = oxford_validation_mapped.batch(TRIPLET_SIZE)
 
-    for index, batch in enumerate(train_ds):
+    for index, batch in enumerate(paris_train_ds):
         optimizer._set_hyper("learning_rate",lr_sched(epoch+STARTING_EPOCH))
         train_step(batch)
         progbar.update(index+1, values = [('Loss', train_loss.result())])
         if index+1 >= BATCH_SIZE:
             break
+            
+    for index, batch in enumerate(oxford_train_ds):
+        optimizer._set_hyper("learning_rate",lr_sched(epoch+STARTING_EPOCH))
+        train_step(batch)
+        progbar.update(index+1, values = [('Loss', train_loss.result())])
+        if index+1 >= BATCH_SIZE:
+            break            
+    
     with train_summary_writer.as_default():
         tf.summary.scalar('loss', train_loss.result(), step=epoch+STARTING_EPOCH)
         tf.summary.scalar('learning rate', optimizer._get_hyper("learning_rate"), step=epoch+STARTING_EPOCH)
         
-    for index, batch in enumerate(valid_ds):
+    for index, batch in enumerate(paris_valid_ds):
         valid_step(batch)
         progbar_v.update(index+1, values = [('Validation Loss', valid_loss.result())])
         if index+1 >= BATCH_SIZE:
             break
+            
+    for index, batch in enumerate(oxford_valid_ds):
+        valid_step(batch)
+        progbar_v.update(index+1, values = [('Validation Loss', valid_loss.result())])
+        if index+1 >= BATCH_SIZE:
+            break            
+            
     with validation_summary_writer.as_default():
         tf.summary.scalar('loss', valid_loss.result(), step=epoch+STARTING_EPOCH)   
         
     if (epoch == EPOCHS-1) or (epoch%20 == 0):
         mean_ap.reset_states()
         mean_ap_semipos.reset_states()
-        test_step(val_x)
+        test_step(paris_val_x, PARIS_EMBEDS, PARIS_PATH_TXT, paris_mean, paris_std, paris_labels, paris_labels_dictionary, paris_junk_dictionary)
+        test_step(oxford_val_x, OXFORD_EMBEDS, OXFORD_PATH_TXT, oxford_mean, oxford_std, oxford_labels, oxford_labels_dictionary, oxford_junk_dictionary)
         with test_summary_writer.as_default():
             tf.summary.scalar('mAP', mean_ap.result(), step=epoch+STARTING_EPOCH)
             tf.summary.scalar('mAP with semi-positive', mean_ap_semipos.result(), step=epoch+STARTING_EPOCH)
