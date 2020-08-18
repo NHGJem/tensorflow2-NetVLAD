@@ -102,6 +102,11 @@ mAP | Ignore Junk | Semipositive Junk | Remarks
 
 Augmentations applied did not seem to increase results by much, sometimes performing worse. The model is also more generalized when *less* images are shown, possibly because showing more images results in overfitting towards the dataset trained on.
 
+### **Combined Dataset**
+mAP | Ignore Junk | Semipositive Junk | Remarks
+--- | --- | --- | ---
+**Ours - Augmented** | 75.7% | 54.9% | Trained on 80-20 split of both Paris and Oxford
+
 ## Result Graphs
 
 ### **Training and Validation Loss Curve of Paris**
