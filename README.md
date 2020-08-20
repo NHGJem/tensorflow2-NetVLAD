@@ -13,6 +13,7 @@ NetVLAD in Tensorflow 2.0 for Deep Image Retrieval. Trained on Oxford5k/Paris6k 
 - [Results](#results)
    - [Paris Dataset](#paris-dataset)
    - [Oxford Dataset](#oxford-dataset)
+   - [t-SNE Plots](#t-sne-plots)
 - [Result Graphs](#result-graphs)
    - [Paris Dataset](#training-and-validation-loss-curve-of-paris)
    - [Oxford Dataset](#training-and-validation-loss-curve-of-oxford)
@@ -101,6 +102,11 @@ mAP | Ignore Junk | Semipositive Junk | Remarks
 **Ours - Augmented*** | 36.7% | 28.6% | Model swap - Trained on 80-20 split of *Paris* images with image size of (300, 300, 3)
 
 Augmentations applied did not seem to increase results by much, sometimes performing worse. The model is also more generalized when *less* images are shown, possibly because showing more images results in overfitting towards the dataset trained on.
+
+### **t-SNE Plots**
+![Oxford t-SNE Plot](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/oxfordtsne_labelled_256_5000.png)
+![Paris t-SNE Plot](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/paristsne_labelled_256_5000.png)
+
 
 ### **Combined Dataset**
 mAP | Ignore Junk | Semipositive Junk | Remarks
