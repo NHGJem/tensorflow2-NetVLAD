@@ -22,7 +22,7 @@ NetVLAD in Tensorflow 2.0 for Deep Image Retrieval. Trained on Oxford5k/Paris6k 
 Goal of this project is to construct a NetVLAD model in Tensorflow 2 for end-to-end learning of deep image retrieval. Images are learnt as embeddings and then ranked according to shortest euclidean distance. 
 
 ## Data
-The popular [Paris](http://www.robots.ox.ac.uk/~vgg/data/parisbuildings/) and [Oxford](http://www.robots.ox.ac.uk/~vgg/data/oxbuildings/) datsets for image retrieval were used. The provided ROI bounding boxes were not used.
+The popular [Paris](http://www.robots.ox.ac.uk/~vgg/data/parisbuildings/) and [Oxford](http://www.robots.ox.ac.uk/~vgg/data/oxbuildings/) datsets for image retrieval were used. The provided ROI bounding boxes were not used. Additionally, groundtruth files for hard negative images (received from the Google Drive link in [Github Page](https://github.com/keshik6/deep-image-retrieval)) can be used for negative generation.
 
 Data was split into 80:20 for training and validation.
 
@@ -32,7 +32,7 @@ The loss function used is triplet loss with a margin, where the triplets are gen
 The negative image used for any query and positive image was a positive image of a different building, as such buildings would tend to have similar-looking features that we would want our model to be able to differentiate.
 
 ## Deep Learning Architecture
-The NetVLAD layer, originally designed usign MatLab ([Github Page](https://github.com/Relja/netvlad)), was modified to be a custom keras layer compatible with Tensorflow 2 ([Github Page](https://github.com/crlz182/Netvlad-Keras)). The layer is then joined to the VGG16 model with its Fully-Connected layers removed, and weights pre-trained on ImageNet.
+The NetVLAD layer, originally designed using MatLab ([Github Page](https://github.com/Relja/netvlad)), was modified to be a custom keras layer compatible with Tensorflow 2 ([Github Page](https://github.com/crlz182/Netvlad-Keras)). The layer is then joined to the VGG16 model with its Fully-Connected layers removed, and weights pre-trained on ImageNet.
 
 Only the weights in the NetVLAD layer are trained, but there is an option to allow for the conv5 layer of the VGG model to be trained.
 
@@ -50,7 +50,7 @@ A model swap was also performed, where the model trained on Paris was used to ev
 ## Hyperparameters
 Object | Value
  --- | --- 
- Image size | (224, 224, 3) OR (300, 300, 3) (see Remarks in results)
+ Image size | (224, 224, 3)
  Batch size | 20 (Parameters updated every 16 triplets)
  Epoch | 200 (Maximum mAP tends to be achieved before 200) 
  Loss Margin | 0.1
@@ -70,8 +70,6 @@ Standard augmentations were used. These include:
 
 Prior to augmentation, non-square images were cropped into squares to preserve aspect ratio.
 
-Tests were also performed without augmentations, for comparison.
-
 ## Setup and Usage
 Change the variables in main.py, ensure all paths to the image folder and ground truths are set correctly, then run main.py.
 
@@ -81,27 +79,22 @@ Change the variables in main.py, ensure all paths to the image folder and ground
 mAP | Ignore Junk | Semipositive Junk | Remarks
 --- | --- | --- | ---
 **NetVLAD Paper - Trained on Pittsburgh** | 78.5% | - | -
-**Ours - Unaugmented** | 87.4% | 60.4% | Trained on all images
-**Ours - Augmented** | 88.0% | 61.6% | Trained on all images
-**Ours - Augmented*** | 53.1% | 36.1% | Model swap - Trained on all *Oxford* images
-**Ours - Augmented** | 88.2% | 57.9% | Trained on 80-20 split
-**Ours - Augmented*** | 59.1% | 39.7% | Model swap - Trained on 80-20 split of *Oxford* images
-**Ours - Augmented** | 90.3% | 63.0% | Trained on 80-20 split with image size of (300, 300, 3)
-**Ours - Augmented*** | 66.0% | 44.6% | Model swap - Trained on 80-20 split of *Oxford* images with image size of (300, 300, 3)
+**Ours** | 88.2% | 57.9% | Trained on 80-20 split
+**Ours*** | 59.1% | 39.7% | Model swap - Trained on 80-20 split of *Oxford* images
+**Ours** | 89.7% | 62.3% | Trained on 80-20 split using hard negative groundtruths
+**Ours*** | 89.2% | 87.5% | Model swap - Trained on 80-20 split of *Oxford* images using hard negative groundtruths
 
 ### **Oxford Dataset**
 mAP | Ignore Junk | Semipositive Junk | Remarks
 --- | --- | --- | ---
 **NetVLAD Paper - Trained on Pittsburgh** | 69.1% | - | -
-**Ours - Unaugmented** | 79.6% | 60.5% | Trained on all images
-**Ours - Augmented** | 76.1% | 59.1% | Trained on all images
-**Ours - Augmented*** | 30.3% | 23.5% | Model swap - Trained on all *Paris* images
-**Ours - Augmented** | 76.5% | 49.7% | Trained on 80-20 split
-**Ours - Augmented*** | 41.6% | 32.5% | Model swap - Trained on 80-20 split of *Paris* images
-**Ours - Augmented** | 76.8% | 59.6% | Trained on 80-20 split with image size of (300, 300, 3)
-**Ours - Augmented*** | 36.7% | 28.6% | Model swap - Trained on 80-20 split of *Paris* images with image size of (300, 300, 3)
+**Ours** | 76.5% | 49.7% | Trained on 80-20 split
+**Ours*** | 41.6% | 32.5% | Model swap - Trained on 80-20 split of *Paris* images
+**Ours** | 79.2% | 61.0% | Trained on 80-20 split using hard negative groundtruths
+**Ours*** | 49.3% | 47.7% | Model swap - Trained on 80-20 split of *Paris* images using hard negative groundtruths
 
-Augmentations applied did not seem to increase results by much, sometimes performing worse. The model is also more generalized when *less* images are shown, possibly because showing more images results in overfitting towards the dataset trained on.
+The use of hard negatives increases mAP results slightly when tested on the same dataset it was trained on.
+It also greatly improves generalization, as the swapped model results are higher and the semi-positive calculation method is almost comparable with the standard calculation method.
 
 ### **t-SNE Plots**
 ![Oxford t-SNE Plot](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/oxfordtsne_labelled_256_5000.png)
