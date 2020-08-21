@@ -10,7 +10,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D, Lambda
 from tensorflow.math import l2_normalize
 
-import data_pipeline as pipe
+#import data_pipeline as pipe
+import data_pipeline_hard_neg as pipe
 import embedding_generator as emb
 import netvlad_layer as netvlad
 
@@ -27,7 +28,7 @@ import netvlad_layer as netvlad
 #------------------------------------------------------------------------------
 ##################### Important configurations #####################
 
-WHICH_DATASET = 'paris' # 'oxford' or 'paris'
+WHICH_DATASET = 'oxford' # 'oxford' or 'paris'
 
 # Path to images
 OXFORD_PATH = os.path.join('..','data','oxbuild_images_zipped','oxbuild_images')
@@ -68,7 +69,7 @@ TRIPLET_SIZE = 16     # Number of triplets in one minibatch
 BATCH_SIZE = 20       # Number of minibatches in one epoch
 VAL_BATCH_SIZE = 32   # Number of images to generate embeddings of at one time
 
-IMG_SIZE = 300
+IMG_SIZE = 224
 IMG_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
 
 LEARNING_RATE = 0.001

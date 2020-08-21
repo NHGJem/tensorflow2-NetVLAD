@@ -59,6 +59,7 @@ def triplet_generator(path2txt, querytxt, train, mean, std, img_size, filetype='
     good = triplet_name+'_good.txt'
     ok = triplet_name+'_ok.txt'
     junk = triplet_name+'_junk.txt'
+    negative = triplet_name+'_bad.txt'
     
     ### generate a list of positives from good and ok and pick one under attribute positive_image_name
     list_of_positives = []
@@ -78,19 +79,9 @@ def triplet_generator(path2txt, querytxt, train, mean, std, img_size, filetype='
     positive_image_name = list_of_positives[rng.integers(len(list_of_positives))]
     positive_image_path = os.path.join(os.path.dirname(path2txt), positive_image_name)
 
-    ### generate a negative by taking another query, ensuring a different building, and pick one of its positives under attribute negative_image_name
-    building = triplet_name.rstrip('_12345')
-    wrong_triplet_name = querytxt[rng.integers(len(querytxt))].decode().rstrip('_query.txt')
-    wrong_building = wrong_triplet_name.rstrip('_12345')
+    ### generate a negative
 
-    while wrong_building == building:
-        wrong_triplet_name = querytxt[rng.integers(len(querytxt))].decode().rstrip('_query.txt')
-        wrong_building = wrong_triplet_name.rstrip('_12345')
-
-    wrong_good = wrong_triplet_name+'_good.txt'
-    wrong_ok = wrong_triplet_name+'_ok.txt'
-
-    list_of_negatives = generate_img_list(path2txt, wrong_good) + generate_img_list(path2txt, wrong_ok)
+    list_of_negatives = generate_img_list(path2txt, negative)
 
     ### Get a small handful of images from only the first 80%. Comment out the split and if-else if training on all images.
     split = int(tf.math.ceil(len(list_of_negatives)*0.8))

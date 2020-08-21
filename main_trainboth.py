@@ -10,7 +10,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D, Lambda
 from tensorflow.math import l2_normalize
 
-import data_pipeline as pipe
+#import data_pipeline as pipe
+import data_pipeline_hard_neg as pipe
 import embedding_generator as emb
 import netvlad_layer as netvlad
 
