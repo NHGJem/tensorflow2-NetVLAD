@@ -82,7 +82,7 @@ mAP | Ignore Junk | Semipositive Junk | Remarks
 **Ours** | 88.2% | 57.9% | Trained on 80-20 split
 **Ours*** | 59.1% | 39.7% | Model swap - Trained on 80-20 split of *Oxford* images
 **Ours** | 89.7% | 62.3% | Trained on 80-20 split using hard negative groundtruths
-**Ours*** | 89.2% | 87.5% | Model swap - Trained on 80-20 split of *Oxford* images using hard negative groundtruths
+**Ours*** | 57.9% | 38.7% | Model swap - Trained on 80-20 split of *Oxford* images using hard negative groundtruths
 
 ### **Oxford Dataset**
 mAP | Ignore Junk | Semipositive Junk | Remarks
@@ -91,10 +91,9 @@ mAP | Ignore Junk | Semipositive Junk | Remarks
 **Ours** | 76.5% | 49.7% | Trained on 80-20 split
 **Ours*** | 41.6% | 32.5% | Model swap - Trained on 80-20 split of *Paris* images
 **Ours** | 79.2% | 61.0% | Trained on 80-20 split using hard negative groundtruths
-**Ours*** | 49.3% | 47.7% | Model swap - Trained on 80-20 split of *Paris* images using hard negative groundtruths
+**Ours*** | 40.0% | 31.5% | Model swap - Trained on 80-20 split of *Paris* images using hard negative groundtruths
 
-The use of hard negatives increases mAP results slightly when tested on the same dataset it was trained on.
-It also greatly improves generalization, as the swapped model results are higher and the semi-positive calculation method is almost comparable with the standard calculation method.
+The use of hard negatives increases mAP results slightly when tested on the same dataset it was trained on, but does not help the model's generalizability.
 
 ### **t-SNE Plots**
 ![Oxford t-SNE Plot](https://github.com/NHGJem/tensorflow2-NetVLAD/blob/master/readme_images/oxfordtsne_labelled_256_5000.png)
