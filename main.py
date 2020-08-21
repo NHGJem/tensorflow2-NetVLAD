@@ -250,7 +250,7 @@ def valid_step(batch):
     
 # Create test step
 def test_step(x):
-    print("Generating Embeddings...") # implement a progbar? but number of batches is unknown
+    print("Generating Embeddings...")
     tick = time()
     emb.generate_all_embeddings(x, model, embed_path, VAL_BATCH_SIZE, mean, std, IMG_SIZE)
     tock = time()

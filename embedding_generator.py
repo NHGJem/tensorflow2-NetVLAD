@@ -76,42 +76,41 @@ def images_with_labels(path2txt, label_list, filetype='jpg'):
 
 def images_with_labels_for_delf(path2txt, label_list, filetype='jpg'):
     path2txt = path2txt#.decode()
-    
+
     label_dict = {}
     junk_dict = {}
-    
+
     for i in range(len(label_list)):
         label = label_list[i]#.decode()
-        
+
         for j in range(1,6):
             query_name = label+'_{}'.format(j)
-            
+
             query = query_name+'_query.txt'
             good = query_name+'_good.txt'
             ok = query_name+'_ok.txt'
             junk = query_name+'_junk.txt'
-            
+
             ### get the query image path from the _query.txt
             with open(os.path.join(path2txt,query)) as file:
                 contents = file.read().split(' ') 
                 query_image_name = contents[0].replace('oxc1_','')+"."+filetype #remove the oxc1_ part which exists in the oxford query txt
-                
+
             list_of_good = pipe.generate_img_list(path2txt, good)
             list_of_ok = pipe.generate_img_list(path2txt, ok)
             list_of_junk = pipe.generate_img_list(path2txt, junk)
-            
+
             tmp_list = list_of_good + list_of_ok
             tmp_list = list(set(tmp_list))
-        
+
             label_dict[query_image_name] = tmp_list
-            
+
             tmp_list2 = list_of_junk
             tmp_list2 = list(set(tmp_list2))
-            
-            junk_dict[query_image_name] = tmp_list2
-        
-    return label_dict, junk_dict
 
+            junk_dict[query_image_name] = tmp_list2
+
+    return label_dict, junk_dict
 
 def validation_dataset_generator(pathname, batchsize = 64):
     list_of_names = []
@@ -203,7 +202,6 @@ def test_metrics(embed_path, path2txt, building, query_number, labels_dictionary
 
     return ap
 
-# TODO
 def test_metrics_semipositive_junk(embed_path, path2txt, building, query_number, labels_dictionary, junk_dictionary): 
     
     query_name = building+'_{}'.format(query_number)
